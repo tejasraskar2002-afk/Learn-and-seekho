@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="mr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123b73">
+  <title>Marathi2English AI</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: light; --blue:#123b73; --pale:#f4f7fb; --border:#dbe3ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,"Noto Sans Devanagari",sans-serif; background:var(--pale); color:#172033; }
+    header { background:var(--blue); color:white; padding:22px 18px 20px; text-align:center; }
+    header h1 { margin:0; font-size:25px; }
+    header p { margin:7px 0 0; font-size:14px; opacity:.92; }
+    main { max-width:720px; margin:auto; padding:16px; }
+    .card { background:white; border:1px solid var(--border); border-radius:16px; padding:16px; margin:0 0 14px; box-shadow:0 2px 8px #123b7308; }
+    h2 { color:var(--blue); font-size:18px; margin:0 0 12px; }
+    label { display:block; font-weight:650; margin:0 0 8px; }
+    textarea { width:100%; min-height:130px; border:1px solid #cbd5e1; border-radius:11px; padding:12px; font:inherit; font-size:16px; line-height:1.5; resize:vertical; background:#fff; color:#172033; }
+    .actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:11px; }
+    button { border:0; border-radius:11px; padding:12px 14px; font:inherit; font-weight:650; cursor:pointer; background:var(--blue); color:white; }
+    button.secondary { background:#e8eef8; color:var(--blue); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .status { min-height:24px; font-size:14px; color:#43516a; margin-top:10px; white-space:pre-wrap; }
+    .small { font-size:12px; color:#5b6472; line-height:1.5; }
+    .pill { display:inline-block; background:#e8eef8; color:var(--blue); border-radius:999px; padding:4px 9px; font-size:12px; }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .meter { height:6px; background:#e5eaf2; border-radius:8px; overflow:hidden; margin-top:10px; }
+    .meter > div { height:100%; width:0; background:#2673df; transition:width .2s; }
+    footer { text-align:center; color:#6b7280; font-size:12px; padding:0 18px 24px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Marathi2English AI</h1>
+  <p>मराठीत बोला • Professional English मिळवा</p>
+</header>
+<main>
+  <section class="card">
+    <div class="row">
+      <h2>1. मराठी आवाज</h2>
+      <span class="pill">कमाल 2 मिनिटे</span>
+    </div>
+    <p class="small">मायक्रोफोन परवानगी द्या. आवाज ओळखण्याची सुविधा तुमच्या Chrome/फोनमधील speech service वर अवलंबून आहे.</p>
+    <div class="actions">
+      <button id="startBtn">🎙 रेकॉर्डिंग सुरू करा</button>
+      <button id="stopBtn" class="secondary" disabled>⏹ थांबवा</button>
+    </div>
+    <div class="meter"><div id="meterBar"></div></div>
+    <div id="timer" class="small">रेकॉर्डिंग सुरू नाही.</div>
+    <div id="speechStatus" class="status" role="status">तयार आहे.</div>
+  </section>
+
+  <section class="card">
+    <h2>2. मराठी मजकूर</h2>
+    <label for="marathiText">ओळखलेला आवाज येथे दिसेल (गरज असल्यास संपादित करा)</label>
+    <textarea id="marathiText">मला विद्यार्थ्यांना इंग्रजी व्याकरण शिकवायचे आहे.</textarea>
+    <div class="actions">
+      <button id="translateBtn">मराठीतून इंग्रजीत भाषांतर</button>
+      <button id="clearBtn" class="secondary">मजकूर साफ करा</button>
+    </div>
+    <div id="translateStatus" class="status" role="status"></div>
+  </section>
+
+  <section class="card">
+    <h2>3. Professional English</h2>
+    <label for="englishText">भाषांतर / दुरुस्त केलेला मजकूर</label>
+    <textarea id="englishText" placeholder="English translation will appear here."></textarea>
+    <div class="actions">
+      <button id="grammarBtn">Grammar व Spelling दुरुस्त करा</button>
+      <button id="copyBtn" class="secondary">📋 कॉपी करा</button>
+    </div>
+    <div id="grammarStatus" class="status" role="status"></div>
+  </section>
+
+  <section class="card">
+    <h2>डेमो उदाहरण</h2>
+    <p><strong>मराठी:</strong> मला विद्यार्थ्यांना इंग्रजी व्याकरण शिकवायचे आहे.</p>
+    <p><strong>Professional English:</strong> I want to teach English grammar to students.</p>
+    <button id="demoBtn" class="secondary">डेमो इंग्रजी भरा</button>
+  </section>
+
+  <section class="card">
+    <h2>गोपनीयता आणि मर्यादा</h2>
+    <p class="small">हे Web App आवाजाचे शब्द ओळखण्यासाठी ब्राउझरची Speech Recognition API वापरते. भाषांतर आणि Grammar तपासणीसाठी मजकूर सार्वजनिक ऑनलाइन सेवांकडे पाठवला जाऊ शकतो. गोपनीय किंवा संवेदनशील माहिती वापरू नका. सार्वजनिक सेवांवर दरमर्यादा किंवा उपलब्धतेचे बदल लागू शकतात. सलग 2 मिनिटांचे भाषण प्रत्येक फोनवर हमखास पूर्ण ओळखले जाईल याची हमी नाही.</p>
+  </section>
+</main>
+<footer>Marathi2English AI • Mobile Web App Starter</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null, listening = false, startedAt = 0, timerInterval = null, finalTranscript = "";
+  const MAX_MS = 120000;
+
+  function status(id, text) { $(id).textContent = text; }
+  function setRecordingUI(on) {
+    listening = on;
+    $("startBtn").disabled = on;
+    $("stopBtn").disabled = !on;
+    if (!on) {
+      clearInterval(timerInterval);
+      $("meterBar").style.width = "0%";
+    }
+  }
+  function stopRecording() {
+    if (recognition && listening) {
+      try { recognition.stop(); } catch (e) {}
+    }
+    setRecordingUI(false);
+  }
+
+  $("startBtn").addEventListener("click", () => {
+    if (!SpeechRecognition) {
+      status("speechStatus", "या Chrome/फोनमध्ये Speech Recognition उपलब्ध नाही. Chrome अपडेट करा किंवा भाषांतरासाठी मजकूर टाइप करा.");
+      return;
+    }
+    finalTranscript = "";
+    $("marathiText").value = "";
+    recognition = new SpeechRecognition();
+    recognition.lang = "mr-IN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      startedAt = Date.now();
+      setRecordingUI(true);
+      status("speechStatus", "ऐकत आहे… मराठीत स्पष्ट बोला.");
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - startedAt;
+        const seconds = Math.min(120, Math.floor(elapsed / 1000));
+        $("timer").textContent = `रेकॉर्डिंग: ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")} / 2:00`;
+        $("meterBar").style.width = `${Math.min(100, elapsed / MAX_MS * 100)}%`;
+        if (elapsed >= MAX_MS) stopRecording();
+      }, 250);
+    };
+    recognition.onresult = event => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const phrase = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += phrase + " ";
+        else interim += phrase;
+      }
+      $("marathiText").value = (finalTranscript + interim).trim();
+    };
+    recognition.onerror = event => {
+      status("speechStatus", `आवाज ओळखण्याची त्रुटी: ${event.error}. पुन्हा प्रयत्न करा किंवा मजकूर टाइप करा.`);
+      setRecordingUI(false);
+    };
+    recognition.onend = () => {
+      setRecordingUI(false);
+      status("speechStatus", $("marathiText").value.trim() ? "आवाज मजकुरात बदलला. भाषांतर करण्यापूर्वी मजकूर तपासा." : "मजकूर मिळाला नाही. पुन्हा प्रयत्न करा.");
+    };
+    try { recognition.start(); }
+    catch (e) { status("speechStatus", "रेकॉर्डिंग सुरू झाले नाही. पेज पुन्हा उघडून प्रयत्न करा."); }
+  });
+
+  $("stopBtn").addEventListener("click", stopRecording);
+
+  $("translateBtn").addEventListener("click", async () => {
+    const text = $("marathiText").value.trim();
+    if (!text) { status("translateStatus", "आधी मराठी मजकूर बोला किंवा टाइप करा."); return; }
+    $("translateBtn").disabled = true;
+    status("translateStatus", "भाषांतर तयार होत आहे…");
+    try {
+      const params = new URLSearchParams({ q: text, langpair: "mr|en" });
+      const res = await fetch("https://api.mymemory.translated.net/get?" + params.toString());
+      if (!res.ok) throw new Error("Translation service error");
+      const data = await res.json();
+      const translated = data?.responseData?.translatedText;
+      if (!translated) throw new Error("No translation returned");
+      $("englishText").value = translated;
+      status("translateStatus", "भाषांतर तयार झाले. Professional wording साठी Grammar दुरुस्ती चालवा.");
+    } catch (e) {
+      status("translateStatus", "भाषांतर सेवा उपलब्ध नाही किंवा मराठी भाषा-जोडी समर्थित नाही. इंटरनेट तपासा; तात्पुरता मजकूर इंग्रजीत स्वतः टाइप करा.");
+    } finally { $("translateBtn").disabled = false; }
+  });
+
+  $("grammarBtn").addEventListener("click", async () => {
+    const text = $("englishText").value.trim();
+    if (!text) { status("grammarStatus", "आधी इंग्रजी मजकूर भाषांतरित करा किंवा पेस्ट करा."); return; }
+    $("grammarBtn").disabled = true;
+    status("grammarStatus", "Grammar आणि spelling तपासत आहे…");
+    try {
+      const params = new URLSearchParams({ text, language: "en-US" });
+      const res = await fetch("https://api.languagetool.org/v2/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: params.toString()
+      });
+      if (!res.ok) throw new Error("Grammar service error");
+      const data = await res.json();
+      let corrected = text;
+      const fixes = (data.matches || []).flatMap(m =>
+        (m.replacements && m.replacements.length)
+          ? [{ offset: m.offset, length: m.length, value: m.replacements[0].value }]
+          : []
+      ).sort((a,b) => b.offset - a.offset);
+      for (const f of fixes) {
+        corrected = corrected.slice(0, f.offset) + f.value + corrected.slice(f.offset + f.length);
+      }
+      $("englishText").value = corrected;
+      status("grammarStatus", fixes.length ? `तपासणी पूर्ण. ${fixes.length} सुचवलेल्या दुरुस्त्या लागू केल्या. अर्थ आणि शैली स्वतः तपासा.` : "ठळक Grammar/Spelling दुरुस्ती आढळली नाही. तरीही मजकूर स्वतः तपासा.");
+    } catch (e) {
+      status("grammarStatus", "Grammar सेवा उपलब्ध नाही. इंटरनेट तपासा किंवा नंतर पुन्हा प्रयत्न करा.");
+    } finally { $("grammarBtn").disabled = false; }
+  });
+
+  $("copyBtn").addEventListener("click", async () => {
+    const text = $("englishText").value.trim();
+    if (!text) { status("grammarStatus", "कॉपी करण्यासाठी इंग्रजी मजकूर नाही."); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      status("grammarStatus", "इंग्रजी मजकूर कॉपी झाला.");
+    } catch (e) {
+      $("englishText").focus(); $("englishText").select();
+      status("grammarStatus", "मजकूर निवडला आहे. Copy वापरा.");
+    }
+  });
+  $("clearBtn").addEventListener("click", () => { $("marathiText").value = ""; status("translateStatus", ""); });
+  $("demoBtn").addEventListener("click", () => {
+    $("englishText").value = "I want to teach English grammar to students.";
+    status("grammarStatus", "डेमो इंग्रजी भरले.");
+  });
+})();
+</script>
+</body>
+</html>
